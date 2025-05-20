@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight, LayoutDashboard, Truck } from "lucide-react"
@@ -8,11 +7,11 @@ import { ChevronLeft, ChevronRight, LayoutDashboard, Truck } from "lucide-react"
 interface SidebarProps {
   open: boolean
   setOpen: (open: boolean) => void
+  activeItem: "dashboard" | "fleet"
+  onItemClick: (item: "dashboard" | "fleet") => void
 }
 
-export function Sidebar({ open, setOpen }: SidebarProps) {
-  const [activeItem, setActiveItem] = useState("fleet")
-
+export function Sidebar({ open, setOpen, activeItem, onItemClick }: SidebarProps) {
   return (
     <>
       {/* Overlay para móviles */}
@@ -53,7 +52,7 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
                 "w-full justify-start text-white hover:bg-white/10",
                 activeItem === "dashboard" && "bg-white/10",
               )}
-              onClick={() => setActiveItem("dashboard")}
+              onClick={() => onItemClick("dashboard")}
             >
               <LayoutDashboard className="mr-2 h-5 w-5" />
               Dashboard
@@ -64,7 +63,7 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
                 "w-full justify-start text-white hover:bg-white/10",
                 activeItem === "fleet" && "bg-white/10",
               )}
-              onClick={() => setActiveItem("fleet")}
+              onClick={() => onItemClick("fleet")}
             >
               <Truck className="mr-2 h-5 w-5" />
               Gestión de Flota

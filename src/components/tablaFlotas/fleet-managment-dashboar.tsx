@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { MainLayout } from "./main-laout"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Search, Plus, Edit, Trash2 } from "lucide-react"
@@ -13,7 +12,6 @@ import { z } from "zod"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-
 // Datos de ejemplo para la tabla
 const fleetData = [
   {
@@ -150,76 +148,74 @@ export function FleetManagementDashboard() {
   }
 
   return (
-    <MainLayout>
-      <div className="p-6">
-        <h1 className="text-2xl font-bold text-[#1D3557] mb-6">Gestión de Flota</h1>
+    <div className="p-6">
+      <h1 className="text-2xl font-bold text-[#1D3557] mb-6">Gestión de Flota</h1>
 
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-          <div className="relative w-full sm:w-64">
-            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="Buscar..."
-              className="pl-8"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          <Button className="bg-[#457B9D] hover:bg-[#2A5A7A] w-full sm:w-auto" onClick={() => setIsModalOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" /> Agregar Unidad
-          </Button>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <div className="relative w-full sm:w-64">
+          <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Input
+            placeholder="Buscar..."
+            className="pl-8"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         </div>
+        <Button className="bg-[#457B9D] hover:bg-[#2A5A7A] w-full sm:w-auto" onClick={() => setIsModalOpen(true)}>
+          <Plus className="h-4 w-4 mr-2" /> Agregar Unidad
+        </Button>
+      </div>
 
-        <div className="rounded-lg border bg-white overflow-hidden">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader className="bg-gray-50">
-                <TableRow>
-                  <TableHead className="font-semibold">ID</TableHead>
-                  <TableHead className="font-semibold">Placa</TableHead>
-                  <TableHead className="font-semibold">Modelo</TableHead>
-                  <TableHead className="font-semibold">Conductor</TableHead>
-                  <TableHead className="font-semibold">Capacidad</TableHead>
-                  <TableHead className="font-semibold">Estado</TableHead>
-                  <TableHead className="font-semibold text-right">Acción</TableHead>
+      <div className="rounded-lg border bg-white overflow-hidden">
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader className="bg-gray-50">
+              <TableRow>
+                <TableHead className="font-semibold">ID</TableHead>
+                <TableHead className="font-semibold">Placa</TableHead>
+                <TableHead className="font-semibold">Modelo</TableHead>
+                <TableHead className="font-semibold">Conductor</TableHead>
+                <TableHead className="font-semibold">Capacidad</TableHead>
+                <TableHead className="font-semibold">Estado</TableHead>
+                <TableHead className="font-semibold text-right">Acción</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredData.map((vehicle) => (
+                <TableRow key={vehicle.id}>
+                  <TableCell className="font-medium">{vehicle.id}</TableCell>
+                  <TableCell>{vehicle.plate}</TableCell>
+                  <TableCell>{vehicle.model}</TableCell>
+                  <TableCell>{vehicle.driver}</TableCell>
+                  <TableCell>{vehicle.capacity || "N/A"}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className={`${getStatusColor(vehicle.status)} border-0`}>
+                      {vehicle.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <Button variant="outline" size="icon" className="h-8 w-8 text-[#1D3557]">
+                        <Edit className="h-4 w-4" />
+                        <span className="sr-only">Editar</span>
+                      </Button>
+                      <Button variant="outline" size="icon" className="h-8 w-8 text-red-500">
+                        <Trash2 className="h-4 w-4" />
+                        <span className="sr-only">Eliminar</span>
+                      </Button>
+                    </div>
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredData.map((vehicle) => (
-                  <TableRow key={vehicle.id}>
-                    <TableCell className="font-medium">{vehicle.id}</TableCell>
-                    <TableCell>{vehicle.plate}</TableCell>
-                    <TableCell>{vehicle.model}</TableCell>
-                    <TableCell>{vehicle.driver}</TableCell>
-                    <TableCell>{vehicle.capacity || "N/A"}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className={`${getStatusColor(vehicle.status)} border-0`}>
-                        {vehicle.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button variant="outline" size="icon" className="h-8 w-8 text-[#1D3557]">
-                          <Edit className="h-4 w-4" />
-                          <span className="sr-only">Editar</span>
-                        </Button>
-                        <Button variant="outline" size="icon" className="h-8 w-8 text-red-500">
-                          <Trash2 className="h-4 w-4" />
-                          <span className="sr-only">Eliminar</span>
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {filteredData.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
-                      No se encontraron resultados.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
+              ))}
+              {filteredData.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
+                    No se encontraron resultados.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
         </div>
       </div>
 
@@ -336,6 +332,6 @@ export function FleetManagementDashboard() {
           </Form>
         </DialogContent>
       </Dialog>
-    </MainLayout>
+    </div>
   )
 }
