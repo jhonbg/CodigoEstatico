@@ -1,17 +1,34 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Search, Plus, Edit, Trash2 } from "lucide-react"
+import { Search, Plus, Edit, Trash2, AlertTriangle } from "lucide-react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { z } from "zod"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 // Datos de ejemplo para la tabla
 const fleetData = [
   {
@@ -56,6 +73,16 @@ const fleetData = [
   },
 ]
 
+// Tipo para un vehículo
+interface Vehicle {
+  id: string
+  plate: string
+  model: string
+  driver: string
+  status: string
+  capacity: string
+}
+
 // Lista de conductores disponibles
 const availableDrivers = [
   { id: "D001", name: "Juan Pérez" },
@@ -85,7 +112,10 @@ type FormValues = z.infer<typeof formSchema>
 export function FleetManagementDashboard() {
   const [searchTerm, setSearchTerm] = useState("")
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [fleetItems, setFleetItems] = useState(fleetData)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [fleetItems, setFleetItems] = useState<Vehicle[]>(fleetData)
+  const [currentVehicle, setCurrentVehicle] = useState<Vehicle | null>(null)
+  const [isEditing, setIsEditing] = useState(false)
 
   // Configuración del formulario con React Hook Form
   const form = useForm<FormValues>({
@@ -99,30 +129,115 @@ export function FleetManagementDashboard() {
     },
   })
 
+  // Efecto para resetear el formulario cuando se cierra el modal
+  useEffect(() => {
+    if (!isModalOpen) {
+      // Pequeño retraso para evitar problemas de estado
+      setTimeout(() => {
+        form.reset({
+          plate: "",
+          model: "",
+          driver: "",
+          capacity: "",
+          status: "Activo",
+        })
+      }, 100)
+    }
+  }, [isModalOpen, form])
+
+  // Función para abrir el modal en modo creación
+  const handleAddNew = () => {
+    setIsEditing(false)
+    setCurrentVehicle(null)
+    form.reset({
+      plate: "",
+      model: "",
+      driver: "",
+      capacity: "",
+      status: "Activo",
+    })
+    setIsModalOpen(true)
+  }
+
+  // Función para abrir el modal en modo edición
+  const handleEdit = (vehicle: Vehicle) => {
+    setIsEditing(true)
+    setCurrentVehicle(vehicle)
+
+    // Encontrar el ID del conductor basado en su nombre
+    const driverId = availableDrivers.find((d) => d.name === vehicle.driver)?.id || ""
+
+    // Primero cerramos el modal si estuviera abierto
+    setIsModalOpen(false)
+
+    // Pequeño retraso para asegurar que el formulario se resetee correctamente
+    setTimeout(() => {
+      // Cargar los datos del vehículo en el formulario
+      form.reset({
+        plate: vehicle.plate,
+        model: vehicle.model,
+        driver: driverId,
+        capacity: vehicle.capacity,
+        status: vehicle.status,
+      })
+
+      // Ahora abrimos el modal
+      setIsModalOpen(true)
+    }, 100)
+  }
+
+  // Función para confirmar eliminación
+  const handleDeleteConfirm = (vehicle: Vehicle) => {
+    setCurrentVehicle(vehicle)
+    setIsDeleteDialogOpen(true)
+  }
+
+  // Función para eliminar un vehículo
+  const deleteVehicle = () => {
+    if (currentVehicle) {
+      setFleetItems(fleetItems.filter((item) => item.id !== currentVehicle.id))
+      setIsDeleteDialogOpen(false)
+      setCurrentVehicle(null)
+    }
+  }
+
   // Función para manejar el envío del formulario
   function onSubmit(data: FormValues) {
-    // Crear un nuevo ID basado en el último ID + 1
-    const newId = String(Number(fleetItems[fleetItems.length - 1]?.id || "0") + 1).padStart(3, "0")
-
     // Encontrar el nombre del conductor seleccionado
-    const selectedDriver = availableDrivers.find((driver) => driver.id === data.driver)?.name || data.driver
+    const selectedDriver = availableDrivers.find((d) => d.id === data.driver)?.name || data.driver
 
-    // Crear el nuevo vehículo
-    const newVehicle = {
-      id: newId,
-      plate: data.plate.toUpperCase(),
-      model: data.model,
-      driver: selectedDriver,
-      status: data.status,
-      capacity: data.capacity,
+    if (isEditing && currentVehicle) {
+      // Actualizar vehículo existente
+      const updatedVehicles = fleetItems.map((vehicle) => {
+        if (vehicle.id === currentVehicle.id) {
+          return {
+            ...vehicle,
+            plate: data.plate.toUpperCase(),
+            model: data.model,
+            driver: selectedDriver,
+            capacity: data.capacity,
+            status: data.status,
+          }
+        }
+        return vehicle
+      })
+      setFleetItems(updatedVehicles)
+    } else {
+      // Crear un nuevo vehículo
+      const newId = String(Number(fleetItems[fleetItems.length - 1]?.id || "0") + 1).padStart(3, "0")
+      const newVehicle: Vehicle = {
+        id: newId,
+        plate: data.plate.toUpperCase(),
+        model: data.model,
+        driver: selectedDriver,
+        capacity: data.capacity,
+        status: data.status,
+      }
+      setFleetItems([...fleetItems, newVehicle])
     }
 
-    // Añadir el nuevo vehículo a la lista
-    setFleetItems([...fleetItems, newVehicle])
-
-    // Cerrar el modal y resetear el formulario
+    // Cerrar el modal
     setIsModalOpen(false)
-    form.reset()
   }
 
   // Filtrar datos según el término de búsqueda
@@ -161,7 +276,7 @@ export function FleetManagementDashboard() {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <Button className="bg-[#457B9D] hover:bg-[#2A5A7A] w-full sm:w-auto" onClick={() => setIsModalOpen(true)}>
+        <Button className="bg-[#457B9D] hover:bg-[#2A5A7A] w-full sm:w-auto" onClick={handleAddNew}>
           <Plus className="h-4 w-4 mr-2" /> Agregar Unidad
         </Button>
       </div>
@@ -195,11 +310,21 @@ export function FleetManagementDashboard() {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
-                      <Button variant="outline" size="icon" className="h-8 w-8 text-[#1D3557]">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8 text-[#1D3557]"
+                        onClick={() => handleEdit(vehicle)}
+                      >
                         <Edit className="h-4 w-4" />
                         <span className="sr-only">Editar</span>
                       </Button>
-                      <Button variant="outline" size="icon" className="h-8 w-8 text-red-500">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8 text-red-500"
+                        onClick={() => handleDeleteConfirm(vehicle)}
+                      >
                         <Trash2 className="h-4 w-4" />
                         <span className="sr-only">Eliminar</span>
                       </Button>
@@ -219,119 +344,152 @@ export function FleetManagementDashboard() {
         </div>
       </div>
 
-      {/* Modal para agregar nueva unidad */}
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle className="text-[#1D3557]">Agregar Nueva Unidad</DialogTitle>
-          </DialogHeader>
+      {/* Modal para agregar/editar unidad */}
+      {isModalOpen && (
+        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle className="text-[#1D3557]">
+                {isEditing ? "Editar Unidad" : "Agregar Nueva Unidad"}
+              </DialogTitle>
+              <DialogDescription>
+                {isEditing
+                  ? "Modifique los datos de la unidad y guarde los cambios."
+                  : "Complete el formulario para agregar una nueva unidad a la flota."}
+              </DialogDescription>
+            </DialogHeader>
 
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="plate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Placa</FormLabel>
-                    <FormControl>
-                      <Input placeholder="ABC-123" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="model"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Modelo</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Toyota Hilux 2023" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="driver"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Conductor</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="plate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Placa</FormLabel>
                       <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Seleccionar conductor" />
-                        </SelectTrigger>
+                        <Input placeholder="ABC-123" {...field} />
                       </FormControl>
-                      <SelectContent>
-                        {availableDrivers.map((driver) => (
-                          <SelectItem key={driver.id} value={driver.id}>
-                            {driver.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <FormField
-                control={form.control}
-                name="capacity"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Capacidad</FormLabel>
-                    <FormControl>
-                      <Input placeholder="2.5 toneladas" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Estado</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormField
+                  control={form.control}
+                  name="model"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Modelo</FormLabel>
                       <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Seleccionar estado" />
-                        </SelectTrigger>
+                        <Input placeholder="Toyota Hilux 2023" {...field} />
                       </FormControl>
-                      <SelectContent>
-                        {vehicleStatuses.map((status) => (
-                          <SelectItem key={status} value={status}>
-                            {status}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <DialogFooter className="mt-6">
-                <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
-                  Cancelar
-                </Button>
-                <Button type="submit" className="bg-[#457B9D] hover:bg-[#2A5A7A]">
-                  Guardar
-                </Button>
-              </DialogFooter>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
+                <FormField
+                  control={form.control}
+                  name="driver"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Conductor</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Seleccionar conductor" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {availableDrivers.map((driver) => (
+                            <SelectItem key={driver.id} value={driver.id}>
+                              {driver.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="capacity"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Capacidad</FormLabel>
+                      <FormControl>
+                        <Input placeholder="2.5 toneladas" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="status"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Estado</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Seleccionar estado" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {vehicleStatuses.map((status) => (
+                            <SelectItem key={status} value={status}>
+                              {status}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <DialogFooter className="mt-6">
+                  <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
+                    Cancelar
+                  </Button>
+                  <Button type="submit" className="bg-[#457B9D] hover:bg-[#2A5A7A]">
+                    {isEditing ? "Guardar Cambios" : "Guardar"}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Diálogo de confirmación para eliminar */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-red-500" />
+              Confirmar eliminación
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              ¿Está seguro que desea eliminar la unidad con placa{" "}
+              <span className="font-semibold">{currentVehicle?.plate}</span>?
+              <br />
+              Esta acción no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={deleteVehicle} className="bg-red-500 hover:bg-red-600 text-white">
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
