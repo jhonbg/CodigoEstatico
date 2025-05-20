@@ -1,9 +1,13 @@
-import React from 'react'
+import { useEffect } from 'react'
+import { useRouter } from 'next/router'
 
 export const Index = () => {
-  return (
-    <div>Index</div>
-  )
+  const router = useRouter()
+
+  useEffect(() => {
+    router.replace('/login')
+  }, [router])
+  return null
 }
 
 export default Index;
