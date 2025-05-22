@@ -9,7 +9,7 @@ export function Dashboard() {
       <div className="flex justify-center items-center mb-8">
         <Card className="w-full max-w-3xl bg-gradient-to-r from-[#1D3557] to-[#457B9D] text-white">
           <CardHeader>
-            <CardTitle className="text-2xl md:text-3xl font-bold">Bienvenido a Fleet Manager</CardTitle>
+            <CardTitle className="text-2xl md:text-3xl font-bold">Welcome a Fleet Manager</CardTitle>
             <CardDescription className="text-white/80">
               Sistema de gestión de flota para optimizar sus operaciones
             </CardDescription>
