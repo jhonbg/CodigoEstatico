@@ -6,7 +6,8 @@ on:
       - main
 
 jobs:
-  sonarqube:
+  build-and-analize:
+    name: Build, Test and Analize
     runs-on: ubuntu-latest
     steps:
       - name: Checkout del código
