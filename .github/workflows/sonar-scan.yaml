@@ -21,7 +21,12 @@ jobs:
       - name: Instalar dependencias
         run: npm ci
       - name: SonarQube Scan
-        uses: Sonarsource/sonarqube-scan-action@master
+        uses: Sonarsource/sonarqube-scan-action@v3
+        with:
+          projectBaseDir: .
+          args: >
+            -Dsonar.organization=jhonbg
+            -Dsonar.projectKey=jhonbg_CodigoEstatico
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: https://sonarcloud.io
