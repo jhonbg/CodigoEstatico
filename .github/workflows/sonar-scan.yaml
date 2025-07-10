@@ -1,20 +1,22 @@
-name: Test Project
+name: CI/CD Sonar Code scan
 
 on:
-  pull_request:
+  # Trigger analysis when pushing to your main branches, and when creating a pull request.
+  push:
     branches:
-      -main
-
+      - main
+  pull_request:
+      types: [opened, synchronize, reopened]
+name: Main Workflow
 jobs:
-  test:
+  sonarqube:
     runs-on: ubuntu-latest
-    container:
-      image: node:20
     steps:
-      - uses: actions/checkout@v3
-        with:
-          node-version: 20
-      - run: npm ci
-      - run: npm test
-      - run: npm run build
-      
+    - uses: actions/checkout@v4
+      with:
+        # Disabling shallow clones is recommended for improving the relevancy of reporting
+        fetch-depth: 0
+    - name: SonarQube Scan
+      uses: sonarsource/sonarcloud-github-action@<action version> # Ex: v4.0.0, See the latest version at https://github.com/marketplace/actions/sonarcloud-scan
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
