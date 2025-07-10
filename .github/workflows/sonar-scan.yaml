@@ -16,8 +16,7 @@ jobs:
           fetch-depth: 0
       - name: SonarQube Scan
         uses: sonarsource/sonarcloud-github-action@v2.2.0
-        with:
-          -Dsonar.projectKey=jhonbg_CodigoEstatico
-          -Dsonar.organization=JhonAlexanderBoteroGomez
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_PROJECT_KEY: jhonbg_CodigoEstatico
+          SONAR_ORGANIZATION: JhonAlexanderBoteroGomez
