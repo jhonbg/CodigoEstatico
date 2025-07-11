@@ -27,6 +27,7 @@ jobs:
           args: >
             -Dsonar.organization=jhonbg
             -Dsonar.projectKey=jhonbg_CodigoEstatico
+            -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/build/**,tailwind.config.js
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: https://sonarcloud.io
