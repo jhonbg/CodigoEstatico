@@ -5,10 +5,10 @@ import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight, LayoutDashboard, Truck } from "lucide-react"
 
 interface SidebarProps {
-  open: boolean
-  setOpen: (open: boolean) => void
-  activeItem: "dashboard" | "fleet"
-  onItemClick: (item: "dashboard" | "fleet") => void
+  readonly open: boolean
+  readonly setOpen: (open: boolean) => void
+  readonly activeItem: "dashboard" | "fleet"
+  readonly onItemClick: (item: "dashboard" | "fleet") => void
 }
 
 export function Sidebar({ open, setOpen, activeItem, onItemClick }: SidebarProps) {
