@@ -15,7 +15,10 @@ export function Sidebar({ open, setOpen, activeItem, onItemClick }: SidebarProps
   return (
     <>
       {/* Overlay para móviles */}
-      {open && <div className="fixed inset-0 z-10 bg-black/50 lg:hidden" onClick={() => setOpen(false)} />}
+      {open && <button
+        type="button"
+        className="fixed inset-0 z-10 bg-black/50 lg:hidden"
+      />}
 
       {/* Sidebar */}
       <aside
