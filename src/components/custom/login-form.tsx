@@ -60,7 +60,7 @@ export function LoginForm({
               </Button>
             </div>
             <div className="flex items-center justify-between mt-4">
-              <a href="#" className="text-sm text-[#2C2C2C] hover:underline">
+              <a href="/recuperar-contraseña" className="text-sm text-[#2C2C2C] hover:underline">
                 ¿Olvidaste tu contraseña?
               </a>
             </div>
